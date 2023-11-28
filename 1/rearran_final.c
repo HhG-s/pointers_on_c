@@ -6,22 +6,28 @@
 #define MAX_INPUT 1000		/* 每个输入行的最大长度 */
 
 int read_column_numbers( int [], int );
-void rearrange( char*, char const*, int, int const[] );
+void rearrange( char*, char const*, int, int [] );
 
 int main() {
 	int n_cols;		/* 储存区间 */
 	int cols[MAX_COLS];
 	char input[MAX_INPUT];
-	char output[MAX_INPUT];
+	char *output = calloc(MAX_COLS, sizeof(char));
 
 	/* 读取列标号 */
 	n_cols = read_column_numbers(cols, MAX_COLS);
+	/* 处理列数为奇的情况 */
+	if (n_cols & 1) {
+		cols[n_cols] = MAX_INPUT-1;
+	}
 
 	/* 读取、处理和打印剩余的输入行 */
-	while (fgets( input, MAX_INPUT, stdin ) != NULL && strcmp(input, "\n")) {
-		fprintf( stdout, "Original input: %s", input );
+	while (fgets( input, MAX_INPUT, stdin ) != NULL &&
+		strcmp(input, "\n")) {
+			
+		fprintf( stdout, "Original input: %s\n", input );
 		rearrange(output, input, n_cols, cols);
-		fprintf( stdout, "Rearranged line: %s\n\n", output );
+		fprintf( stdout, "Rearranged line: %s\n", output );
 	}
 
 	return EXIT_SUCCESS;
@@ -39,13 +45,6 @@ read_column_numbers( int cols[], int max ) {
 		num++;
 	}
 
-	/* 列数为偶 
-	** 除了一般取余的运算外，我们还可以通过按位与&操作来判断一个数是否为奇
-	*/
-	if ( num & 1 ) {
-		fputs("Last column number is not paired\n", stderr);
-		exit(EXIT_FAILURE);
-	}
 
 	/* 丢弃结束标志 */
 	while ((ch = getchar()) != EOF && ch != '\n') {
@@ -56,21 +55,35 @@ read_column_numbers( int cols[], int max ) {
 }
 
 void
-rearrange(char *output, char const *input, int n_cols, int const cols[]) {
+rearrange(char *output, char const *input, int n_cols, int cols[]) {
 	int col;
 	int len;
-	int nchars = 0;
-	int output_col = 0;
+	int nchars;
+	int output_col;
 
 	len = strlen(input);
+	nchars = 0;
+	output_col = 0;
 
 	/* 处理每对列标号 */
 	for (col = 0; col < n_cols; col += 2) {
-		nchars = cols[col+1] - cols[col] + 1;	/* 获取区间长度 */
+		/* 解决列非升序排列问题 */
+		if (cols[col+1] < cols[col]) {
+			/* 如果非升序则交换两列位置 */
+			cols[col] ^= cols[col+1];
+			cols[col+1] ^= cols[col];
+			cols[col] ^= cols[col+1];
+		}
 
-		/* 如果输入行结束或者输出行已满则结束任务 */
-		if (cols[col] >= len || 
-		    output_col >= MAX_COLS - 1) {
+		nchars = cols[col+1] - cols[col] + 1;
+
+		/* 如果行数过长则跳过 */
+		if (cols[col] > len) {
+			continue;continue;
+		}
+
+		/* 如果输出行已满则结束任务 */
+		if (output_col == MAX_COLS - 1) {
 			break;
 		}
 
