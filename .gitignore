@@ -2,3 +2,4 @@
 *.json
 *.out
 .gitattributes
+test*
