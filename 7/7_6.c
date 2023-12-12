@@ -75,12 +75,14 @@ void written_amount(unsigned amount, wchar_t *buffer) {
 
 }
 
+#ifdef DEBUG
 int main() {
 	setlocale(LC_ALL, "");
 	wchar_t buffer[100];
 	written_amount(3123456789, buffer);
 	wprintf(buffer);
 }
+#endif
 
 void int_to_str(unsigned n, char *buffer) {
 	int i = 0;
